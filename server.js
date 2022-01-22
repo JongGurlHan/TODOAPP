@@ -69,6 +69,12 @@ app.get('/list', function(req, res){
 });
 
 app.delete('/delete', function(req, res){
-    console.log(req.body) //요청시 함께 보낸 데이터 
     //req.body에 담긴 게시물 번호에 따라 db에서 게시물 삭제
+    console.log(req.body); 
+    req.body._id = parseInt(req.body._id); //int 형변화
+
+    db.collection('post').deleteOne(req.body,function(err, rst){
+        console.log('삭제완료');
+        res.status(200).send({message :'성공했습니다'});
+    })
 });
