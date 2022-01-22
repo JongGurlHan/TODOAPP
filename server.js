@@ -23,17 +23,17 @@ MongoClient.connect('mongodb+srv://admin:3shan212406@cluster0.nuqju.mongodb.net/
 
 
 //함수 안의 함수(function(){}): 콜백함수, 순차적으로 실행하고플때 씀
-app.get('/', function(req, rep){
-    rep.sendFile(__dirname+'/index.html');
+app.get('/', function(req, res){
+    res.sendFile(__dirname+'/index.html');
 });
 
-app.get('/write', function(req, rep){
-    rep.sendFile(__dirname+ '/write.html')
+app.get('/write', function(req, res){
+    res.sendFile(__dirname+ '/write.html')
 });
 
 // 1. /add로 post 요청하면(폼 전송하면) 
-app.post('/add', function(req, rep){
-    rep.send('전송완료');
+app.post('/add', function(req, res){
+    res.send('전송완료');
 
     //2. DB.counter 내의 총게시물 갯수를 찾음
     db.collection('counter').findOne({name: '게시물갯수'}, function(err, rst){
@@ -60,14 +60,15 @@ app.post('/add', function(req, rep){
 });
 
 
-app.get('/list', function(req, rep){
-    
+app.get('/list', function(req, res){    
     // 디비에 저장된 post라는 collection안의 모든 데이터를 꺼내주세요(.find().toArray();)
     db.collection('post').find().toArray(function(err, rst){
         console.log(rst);
-        rep.render('list.ejs', {posts : rst}); //마치 model.addAttribute와 같은
+        res.render('list.ejs', {posts : rst}); //마치 model.addAttribute와 같은
     });
+});
 
-
-
+app.delete('/delete', function(req, res){
+    console.log(req.body) //요청시 함께 보낸 데이터 
+    //req.body에 담긴 게시물 번호에 따라 db에서 게시물 삭제
 });
