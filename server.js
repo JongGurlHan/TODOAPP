@@ -5,6 +5,8 @@ const { response } = require('express');
 app.use(bodyParser.urlencoded({extended : true}));
 app.set('view engine', 'ejs');
 
+app.use('/public', express.static('public')); //static파일을 보관하기위해 public 폴더 쓸거다.
+
 const MongoClient = require('mongodb').MongoClient;
 
 var db; //변수 하나 필요
@@ -24,11 +26,11 @@ MongoClient.connect('mongodb+srv://admin:3shan212406@cluster0.nuqju.mongodb.net/
 
 //함수 안의 함수(function(){}): 콜백함수, 순차적으로 실행하고플때 씀
 app.get('/', function(req, res){
-    res.sendFile(__dirname+'/index.html');
+    res.render(__dirname+'/views/index.ejs');
 });
 
 app.get('/write', function(req, res){
-    res.sendFile(__dirname+ '/write.html')
+    res.render(__dirname+ '/views/write.ejs')
 });
 
 // 1. /add로 post 요청하면(폼 전송하면) 
@@ -50,9 +52,7 @@ app.post('/add', function(req, res){
                 if(err){return console.log(err)}
             }) 
 
-        });
-
-
+        });     
     }); 
     
     console.log(req.body.title)
@@ -78,3 +78,25 @@ app.delete('/delete', function(req, res){
         res.status(200).send({message :'성공했습니다'});
     })
 });
+
+//게시물 자세히 보기
+app.get('/detail/:id', function(req, res){
+    
+    db.collection('post').findOne({_id : parseInt(req.params.id)}, function(err, rst){
+        console.log(rst);
+     
+        res.render('detail.ejs', {data :rst});
+    });
+
+})
+
+//게시물 수정
+app.get('/edit/:id', function(req, res){
+
+    db.collection('post').findOne({_id: parseInt(req.params.id)}, function(err, rst){
+        console.log(rst);
+
+        res.render('edit.ejs', {data:rst})
+    });
+
+} )
