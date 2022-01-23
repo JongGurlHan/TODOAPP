@@ -3,6 +3,8 @@ const app = express(); // express라이브를 이용해서 새로운 객체 생�
 const bodyParser = require('body-parser');
 const { response } = require('express');
 app.use(bodyParser.urlencoded({extended : true}));
+const methodOverride = require('method-override') //html에서 put/delete 요청하기위해
+app.use(methodOverride('_method'))
 app.set('view engine', 'ejs');
 
 app.use('/public', express.static('public')); //static파일을 보관하기위해 public 폴더 쓸거다.
@@ -90,7 +92,7 @@ app.get('/detail/:id', function(req, res){
 
 })
 
-//게시물 수정
+//게시물 수정 페이지 이동
 app.get('/edit/:id', function(req, res){
 
     db.collection('post').findOne({_id: parseInt(req.params.id)}, function(err, rst){
@@ -100,3 +102,15 @@ app.get('/edit/:id', function(req, res){
     });
 
 } )
+
+//게시물 수정
+app.put('/edit', function(req, res){
+
+
+    //$set: 업데이트(없으면 추가)
+    db.collection('post').updateOne({_id : parseInt(req.body.id)},{$set : {제목: req.body.title, 날짜 : req.body.date}}, function(err, rst){
+        console.log('수정완료')
+        res.redirect('/list');
+    }) 
+} );
+
