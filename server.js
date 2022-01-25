@@ -12,8 +12,8 @@ app.use('/public', express.static('public')); //static파일을 보관하기위�
 const MongoClient = require('mongodb').MongoClient;
 
 var db; //변수 하나 필요
-MongoClient.connect('mongodb+srv://admin:3shan212406@cluster0.nuqju.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
-                    function(err, client){
+MongoClient.connect('mongodb+srv://admin:3shan212406@cluster0.nuqju.mongodb.net/myFiresDatabase?retryWrites=true&w=majority'
+,function(err, client){
 
     if(err) return console.log(err)
 
@@ -40,17 +40,17 @@ app.post('/add', function(req, res){
     res.send('전송완료');
 
     //2. DB.counter 내의 총게시물 갯수를 찾음
-    db.collection('counter').findOne({name: '게시물갯수'}, function(err, rst){
-        console.log(rst.totalPost); 
-        var 총게시물갯수 = rst.totalPost; //3. 총게시물 갯수를 변수에 저장
+    db.collection('counter').findOne({name: '게시물갯수'}, function(err, res){
+        console.log(res.totalPost); 
+        var 총게시물갯수 = res.totalPost; //3. 총게시물 갯수를 변수에 저장
 
         //4. 이제 DB.post에 새 게시물 저장
-        db.collection('post').insertOne({ _id : 총게시물갯수 + 1, 제목 : req.body.title, 날짜: req.body.date}, function(err, rst){ //Object 자료형으로 저장
+        db.collection('post').insertOne({ _id : 총게시물갯수 + 1, 제목 : req.body.title, 날짜: req.body.date}, function(err, res){ //Object 자료형으로 저장
             console.log('저장완료');
 
             //5. 저장이 완료되면 db.counter내의 총 게시물 갯수+1
             // $inc(operator): {$inc : {totalPost: 기존값에 더해줄 값}}
-            db.collection('counter').updateOne({name: '게시물갯수'},{ $inc : {totalPost:1} }, function(err, rst){
+            db.collection('counter').updateOne({name: '게시물갯수'},{ $inc : {totalPost:1} }, function(err, res){
                 if(err){return console.log(err)}
             }) 
 
@@ -75,7 +75,7 @@ app.delete('/delete', function(req, res){
     console.log(req.body); 
     req.body._id = parseInt(req.body._id); //int 형변화
 
-    db.collection('post').deleteOne(req.body,function(err, rst){
+    db.collection('post').deleteOne(req.body,function(err, res){
         console.log('삭제완료');
         res.status(200).send({message :'성공했습니다'});
     })
@@ -84,10 +84,10 @@ app.delete('/delete', function(req, res){
 //게시물 자세히 보기
 app.get('/detail/:id', function(req, res){
     
-    db.collection('post').findOne({_id : parseInt(req.params.id)}, function(err, rst){
-        console.log(rst);
+    db.collection('post').findOne({_id : parseInt(req.params.id)}, function(err, res){
+        console.log(res);
      
-        res.render('detail.ejs', {data :rst});
+        res.render('detail.ejs', {data :res});
     });
 
 })
@@ -95,10 +95,10 @@ app.get('/detail/:id', function(req, res){
 //게시물 수정 페이지 이동
 app.get('/edit/:id', function(req, res){
 
-    db.collection('post').findOne({_id: parseInt(req.params.id)}, function(err, rst){
-        console.log(rst);
+    db.collection('post').findOne({_id: parseInt(req.params.id)}, function(err, res){
+        console.log(res);
 
-        res.render('edit.ejs', {data:rst})
+        res.render('edit.ejs', {data:res})
     });
 
 } )
@@ -108,7 +108,7 @@ app.put('/edit', function(req, res){
 
 
     //$set: 업데이트(없으면 추가)
-    db.collection('post').updateOne({_id : parseInt(req.body.id)},{$set : {제목: req.body.title, 날짜 : req.body.date}}, function(err, rst){
+    db.collection('post').updateOne({_id : parseInt(req.body.id)},{$set : {제목: req.body.title, 날짜 : req.body.date}}, function(err, res){
         console.log('수정완료')
         res.redirect('/list');
     }) 
@@ -135,6 +135,21 @@ app.post('/login', passport.authenticate('local', {
 }), function (req, res) {
     res.redirect('/')
 });
+
+app.get('/mypage', isLogin, function(req, res){
+    req.user //deserializeUser()통해서 찾은 사용자정보
+    res.render('mypage.ejs', {user_data : req.user})
+})
+
+//로그인 여부 확인하는 미들웨어
+function isLogin(req, res, next){
+    if(req.user){ //로그인 후 세션이 있으면 req.user가 항상있음
+        next()
+    }else{
+        res.send('로그인 하지 않았습니다.')
+    }
+}
+
 
 //'local' strategy(인증방식)
 passport.use(new LocalStrategy({
@@ -164,8 +179,14 @@ passport.use(new LocalStrategy({
       done(null, user.id)
   });
 
+  //deserializeUser(): 로그인한 유저의 세션 아이디를 바탕으로 개인정보를 db에서 찾는 역할
+  //mypage 접속시 db에서 {id:xx}인걸 찾아서 그 결과를 보내줌
   passport.deserializeUser(function(id, done){
-      done(null, {})
+      db.collection('login').findOne({id: id},function(err, res){
+        //db에서 위에있는 user.id로 유저를 찾음
+        done(null, res)
+      })    
+     
   });
 
 
