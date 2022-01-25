@@ -114,3 +114,63 @@ app.put('/edit', function(req, res){
     }) 
 } );
 
+//Session 방식 로그인 기능
+const passport =require('passport');
+const LocalStrategy = require('passport-local').Strategy ;
+const session = require('express-session');
+
+//app.use(미들웨어:요청과 응답 중간에 실행되는 코드))
+app.use(session({secret: '비밀코드', resave: true, saveUninitialized: false}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+app.get('/login', function(req, res){
+    res.render('login.ejs')
+});
+
+//passport를 통과해야 function실행
+app.post('/login', passport.authenticate('local', {
+    failureRedirect:'/fail'
+}), function (req, res) {
+    res.redirect('/')
+});
+
+//'local' strategy(인증방식)
+passport.use(new LocalStrategy({
+    usernameField: 'id',
+    passwordField: 'pw',
+    session: true, //세션으로 저장할지 
+    passReqToCallback: false,
+  }, function (입력한아이디, 입력한비번, done) { //아이디, 비번 검증하는 콜백함수
+    //console.log(입력한아이디, 입력한비번);
+    db.collection('login').findOne({ id: 입력한아이디 }, function (err, res) {
+      
+        if (err) return done(err)
+    //done(서버에러, 성공시 사용자DB데이터, 에러메시지)
+      if (!res) return done(null, false, { message: '존재하지않는 아이디입니다.' })
+      if (입력한비번 == res.pw) {
+        return done(null, res)
+      } else {
+        return done(null, false, { message: '비밀번호가 틀렸습니다.' })
+      }
+    })
+  }));
+  //이 방식은 보안이 안좋다. 입력한 비번을 암호화해서 비교하는방법으로 개선해야
+
+  //id를 이용해서 세션을 저장(로그인 성공시 발동) +쿠키만들어줌
+  //아이디/비번 검증 성공시 res가 user로 보내짐
+  passport.serializeUser(function(user, done){
+      done(null, user.id)
+  });
+
+  passport.deserializeUser(function(id, done){
+      done(null, {})
+  });
+
+
+
+
+
+
+
