@@ -6,19 +6,17 @@ app.use(bodyParser.urlencoded({extended : true}));
 const methodOverride = require('method-override') //html에서 put/delete 요청하기위해
 app.use(methodOverride('_method'))
 app.set('view engine', 'ejs');
+// const dotenv = require('dotenv')
+// dotenv.config();
 
 app.use('/public', express.static('public')); //static파일을 보관하기위해 public 폴더 쓸거다.
 
 const MongoClient = require('mongodb').MongoClient;
 
 var db; //변수 하나 필요
-MongoClient.connect('mongodb+srv://admin:3shan212406@cluster0.nuqju.mongodb.net/myFiresDatabase?retryWrites=true&w=majority'
-,function(err, client){
-
+MongoClient.connect('mongodb+srv://admin:3shan212406@cluster0.nuqju.mongodb.net/myFiresDatabase?retryWrites=true&w=majority',function(err, client){
     if(err) return console.log(err)
-
     db = client.db('todoapp'); //todoapp 이라는 database(폴더)에 연결
-
     app.listen(8090, function(){ //서버를 어디서 열지 결정, listen(서버 띄울 포트번호, 띄운 후 실행할 코드)
         console.log('listening on 8090')
     }); 
@@ -69,6 +67,15 @@ app.get('/list', function(req, res){
         res.render('list.ejs', {posts : rst}); //마치 model.addAttribute와 같은
     });
 });
+
+//특정 게시물 조회
+app.get('/search', (req, res) => {
+    console.log(req.query.value)
+    db.collection('post').find({제목:req.query.value}).toArray((req, res)=>{
+        console.log(res)
+    })
+})
+
 
 app.delete('/delete', function(req, res){
     //req.body에 담긴 게시물 번호에 따라 db에서 게시물 삭제
