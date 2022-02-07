@@ -1,0 +1,87 @@
+<!doctype html>
+<html >
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="/public/main.css">
+
+    <title>Hello, world!</title>
+  </head>
+  <body>
+
+    <%- include('nav.html') %>
+
+
+      <h4 class="ml-2 my-3 text-center">검색결과 페이지</h4>
+
+      <div class="container input-group mb-2">
+        <input class="form-control" id="search-input">
+        <button class="input-group-append btn btn-danger"
+        id="search">검색</button>
+      </div>
+      <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+
+      <!-- 검색버튼 누르면 서버로 GET요청 -->
+      <script>
+        $('#search').click(function(){
+          var inputData = $('#search-input').val()
+          window.location.replace('/search?value=' + inputData) 
+        })
+
+      </script>
+
+      <div class="container">
+        <ul class="list-group">
+          <% for (var i = 0; i < posts.length; i++){ %>
+          <li class="list-group-item">
+            <p>글번호 : <%= posts[i]._id %></p>
+            <h4><a href="/detail">할일 제목 :<%= posts[i].제목 %> </a></h4>
+            <p>할일 마감날짜 : <%= posts[i].날짜 %></p>
+            <button class="btn btn-danger delete" data-id="<%= posts[i]._id %>">삭제</button>
+          </li>
+          <% } %>
+          
+        </ul>
+      </div>
+
+        <script>
+
+          //내가 누른 버튼에 숨겨진 data-id 값을 가져와라
+          $('.delete').click(function(e){
+
+            var 글번호 = e.target.dataset.id; //e.target:내가 누른 요소 dataset.id:내가 누른 요소의 data-id
+            var 지금누른거 = $(this);
+            $.ajax({ 
+              method : 'DELETE',
+              url: '/delete', 
+              data: {_id : 글번호} //요청과 함께 보낼 데이터
+            }).done(function(rst){  //.done : 요청이 성공하면 요걸 실행해주세요
+              //삭제버튼을 누른 <li> 요소를 제거(안보이게)
+              console.log('성공했어요');
+              지금누른거.parent('li').fadeOut();
+              
+            }).fail(function(xhr, textStatus, errorThrown){ //요청 실패시 
+              console.log(xhr, textStatus, errorThrown);
+
+
+            });
+
+          })
+
+
+        </script>
+
+      
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF" crossorigin="anonymous"></script>
+
+   
+  </body>
+</html>
