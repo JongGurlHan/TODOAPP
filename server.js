@@ -70,11 +70,30 @@ app.get('/list', function(req, res){
 
 //특정 게시물 조회
 app.get('/search', (req, res) => {
-    console.log(req.query.value)
-    db.collection('post').find({제목:req.query.value}).toArray((req, res)=>{
-        console.log(res)
+    var searchCondition = [
+        {
+            $search: {
+              index: 'titleSearch',
+              text: {
+                query: req.query.value,
+                path: '제목'  // 제목날짜 둘다 찾고 싶으면 ['제목', '날짜']
+              }
+            }
+          },
+          {$sort: {_id : 1}}  //$sort:정렬 연산자 - _id를 오름차순으로
+    ]
+    db.collection('post').aggregate(searchCondition).toArray((err, rst)=>{
+        console.log(rst)
+        res.render('search.ejs', {posts : rst}); //마치 model.addAttribute와 같은
+
     })
 })
+//Binary Search 적용하려면 미리 숫자순 정렬되어야 함
+//DB에서 미리 정렬(Indexing)해두면 DB는 알아서 Binary Search해줌
+//index: 기존 collection을 정렬해놓은 사본
+
+//aggregate: 검색조건을 여러개를 입력 할 수 있다. 
+
 
 
 app.delete('/delete', function(req, res){

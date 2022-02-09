@@ -19,12 +19,28 @@
 
       <h4 class="ml-2 my-3 text-center">할일 리스트</h4>
 
+      <div class="container input-group mb-2">
+        <input class="form-control" id="search-input">
+        <button class="input-group-append btn btn-danger"
+        id="search">검색</button>
+      </div>
+      <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+
+      <!-- 검색버튼 누르면 서버로 GET요청 -->
+      <script>
+        $('#search').click(function(){
+          var inputData = $('#search-input').val()
+          window.location.replace('/search?value=' + inputData) 
+        })
+
+      </script>
+
       <div class="container">
         <ul class="list-group">
           <% for (var i = 0; i < posts.length; i++){ %>
           <li class="list-group-item">
             <p>글번호 : <%= posts[i]._id %></p>
-            <h4><a href="detail">할일 제목 :<%= posts[i].제목 %> </a></h4>
+            <h4><a href="/detail">할일 제목 :<%= posts[i].제목 %> </a></h4>
             <p>할일 마감날짜 : <%= posts[i].날짜 %></p>
             <button class="btn btn-danger delete" data-id="<%= posts[i]._id %>">삭제</button>
           </li>
@@ -33,7 +49,6 @@
         </ul>
       </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
         <script>
 
           //내가 누른 버튼에 숨겨진 data-id 값을 가져와라
