@@ -33,31 +33,7 @@ app.get('/write', function(req, res){
     res.render(__dirname+ '/views/write.ejs')
 });
 
-// 1. /add로 post 요청하면(폼 전송하면) 
-app.post('/add', function(req, res){
-    res.send('전송완료');
 
-    //2. DB.counter 내의 총게시물 갯수를 찾음
-    db.collection('counter').findOne({name: '게시물갯수'}, function(err, res){
-        console.log(res.totalPost); 
-        var 총게시물갯수 = res.totalPost; //3. 총게시물 갯수를 변수에 저장
-
-        //4. 이제 DB.post에 새 게시물 저장
-        db.collection('post').insertOne({ _id : 총게시물갯수 + 1, 제목 : req.body.title, 날짜: req.body.date}, function(err, res){ //Object 자료형으로 저장
-            console.log('저장완료');
-
-            //5. 저장이 완료되면 db.counter내의 총 게시물 갯수+1
-            // $inc(operator): {$inc : {totalPost: 기존값에 더해줄 값}}
-            db.collection('counter').updateOne({name: '게시물갯수'},{ $inc : {totalPost:1} }, function(err, res){
-                if(err){return console.log(err)}
-            }) 
-
-        });     
-    }); 
-    
-    console.log(req.body.title)
-
-});
 
 
 app.get('/list', function(req, res){    
@@ -96,16 +72,7 @@ app.get('/search', (req, res) => {
 
 
 
-app.delete('/delete', function(req, res){
-    //req.body에 담긴 게시물 번호에 따라 db에서 게시물 삭제
-    console.log(req.body); 
-    req.body._id = parseInt(req.body._id); //int 형변화
 
-    db.collection('post').deleteOne(req.body,function(err, res){
-        console.log('삭제완료');
-        res.status(200).send({message :'성공했습니다'});
-    })
-});
 
 //게시물 자세히 보기
 app.get('/detail/:id', function(req, res){
@@ -215,8 +182,55 @@ passport.use(new LocalStrategy({
      
   });
 
+  app.post('/register', function(req, res){
+      db.collection('login').insertOne({id : req.body.id, pw: req.body.pw}, function(err, rst){
+          res.redirect('/')
+      })
+  })
 
 
+app.post('/add', function(req, res){
+    res.send('전송완료');
+
+    //2. DB.counter 내의 총게시물 갯수를 찾음
+    db.collection('counter').findOne({name: '게시물갯수'}, function(err, res){
+       
+        console.log(res.totalPost); 
+        var 총게시물갯수 = res.totalPost; //3. 총게시물 갯수를 변수에 저장
+
+       // var 저장할거 = {}
+
+        //4. 이제 DB.post에 새 게시물 저장
+        db.collection('post').insertOne({ _id : 총게시물갯수 + 1, 작성자 : req.user._id, 제목 : req.body.title, 날짜: req.body.date }, function(err, res){ //Object 자료형으로 저장
+            console.log('저장완료');
+
+            //5. 저장이 완료되면 db.counter내의 총 게시물 갯수+1
+            // $inc(operator): {$inc : {totalPost: 기존값에 더해줄 값}}
+            db.collection('counter').updateOne({name: '게시물갯수'},{ $inc : {totalPost:1} }, function(err, res){
+                if(err){return console.log(err)}
+            }) 
+
+        });     
+    }); 
+    
+    console.log(req.body.title)
+
+});
+
+app.delete('/delete', function(req, res){
+    //req.body에 담긴 게시물 번호에 따라 db에서 게시물 삭제
+    console.log(req.body); 
+    req.body._id = parseInt(req.body._id); //int 형변화
+
+    var 삭제할데이터 = {_id : req.body._id, 작성자 : req.user._id } //_id와 작성자 둘다 만족하는 게시물을 찾아서 삭제
+
+
+    db.collection('post').deleteOne(삭제할데이터,function(err, rst){
+        console.log('삭제완료');
+        if(rst){console.log(rst)}
+        res.status(200).send({message :'성공했습니다'});
+    })
+});
 
 
 
