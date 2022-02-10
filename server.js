@@ -232,6 +232,14 @@ app.delete('/delete', function(req, res){
     })
 });
 
+//app.use(미들웨어) //미들웨어: 요청과 응답 사이에 실행되는 코드
+//그냥 app.use(); 하면 전역미들웨어(모든 요청과 응답사이에 실행)
+//app.get('/mypage', ~~) : /mypage에 접속했을때만 미들웨어 실행
+
+//고객이 /shop 경로로 요청했을때 이런미들웨어(라우터)를 적용해주세요~
+ app.use('/shop', require('./routes/shop')); //server.js에 shop.js라우터 첨부하기
+
+ app.use('/board/sub', require('./routes/board'));
 
 
 
