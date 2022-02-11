@@ -241,5 +241,30 @@ app.delete('/delete', function(req, res){
 
  app.use('/board/sub', require('./routes/board'));
 
+ let multer = require('multer'); 
+var storage = multer.diskStorage({ //이미지를 어디에 저장할지 정의(disk에 저장)
+    destination : function(req, file, cb){ 
+        cb(null, './public/image')
+    },
+    filename : function(req, file, cb){ //저장한 이미지의 파일명 설정
+        cb(null, file.originalname )
+    }
+}) 
+
+var upload = multer({storage : storage});
+
+//이미지 업로드페이지 이동
+app.get('/upload', function(req, res){
+    res.render('upload.ejs')
+});
+
+app.post('/upload', upload.single('profile'), function(req, res){
+    res.send('업로드완료')
+})
+
+app.get('/image/:imgName', function(req, res){
+    res.sendFile(__dirname + '/public/image/' + req.params.imgName)
+})
+
 
 
